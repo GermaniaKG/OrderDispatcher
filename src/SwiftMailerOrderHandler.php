@@ -122,6 +122,8 @@ class SwiftMailerOrderHandler implements OrderHandlerInterface
             throw new \RuntimeException("No mail subject defined");
         }
 
+        $context = array_merge($order->getCustomerData(), $context);
+
         // Stolen here:
         // https://github.com/Seldaek/monolog/blob/master/src/Monolog/Processor/PsrLogMessageProcessor.php
         $replacements = [];
