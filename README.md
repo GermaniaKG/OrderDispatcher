@@ -279,6 +279,8 @@ Renderers are used to create a string representation from an order object, typic
 
 #### RendererInterface
 
+Renderers accept a *template* string and a context variables array. In case of errors, `Germania\OrderDispatcher\Exceptions\RendererExceptionInterface` must be thrown.
+
 ```php
 public function render( string $template, array $context = array()) : ?string;
 ```
@@ -322,18 +324,32 @@ The *SwiftMailerOrderHandler* implements the *OrderHandlerInterface*. Its constr
 
 Typically, you will use the *TwigRenderer* for RendererInterface.
 
+The mail configuration array must contain a `to `, `from`, `template,`and a `subject` element. The subject may have field variables in curly braces which are interpolated from the handle method context.
+
+*Subject* and *template* given in mail configuration array may be overridden by  `mailSubject` or `mailTemplate` entry in the context array.
+
+The renderer will be passed the handler context with additional `customer`, `orderItems`, and `datetimeNow` information.
+
 ```php
 <?php
 use Germania\OrderDispatcher\SwiftMailerOrderHandler;
 
+$order = ...;
 $renderer = ... ;
 $swift_mailer = ...;
+
 $mail_config = array(
-	'to' => ... ,
-  'from' => ... ,
+	'to' => array("mail@test.com" => "John Doe"),
+  'from' => array("webshop@test.com" => "My Webshop"),
+  'template' => 'mail.tpl',
+  'subject' => "{foo} {bar}"
 );
 $handler = new SwiftMailerOrderHandler($swift_mailer, $mail_config, $renderer);
 
+$handler->handle($order, [
+  'foo' => "Order"
+  'bar' => "beverage"
+]);
 ```
 
 
