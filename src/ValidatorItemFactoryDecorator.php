@@ -27,7 +27,14 @@ class ValidatorItemFactoryDecorator extends ItemFactoryDecoratorAbstract impleme
     {
         $order_item = $this->getValidator()->validate($order_item);
 
-        return $this->getItemFactory()->createItem( $order_item);
+        $item = $this->getItemFactory()->createItem( $order_item);
+
+        foreach($order_item as $key => $value) {
+            if (!$item->offsetExists($key)) {
+                $item->offsetSet($key, $value);
+            }
+        }
+        return $item;
     }
 
 
