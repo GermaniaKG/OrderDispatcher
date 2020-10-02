@@ -29,8 +29,16 @@ class TwigRenderer implements RendererInterface
      */
     public function render( string $template, array $context = array()) : string
     {
-        $context = $this->getContext($context);
-        return $this->twig->render($template, $context);
+        try {
+            $context = $this->getContext($context);
+            return $this->twig->render($template, $context);
+        }
+        catch (RendererExceptionInterface $e) {
+            throw $e;
+        }
+        catch (\Throwable $e) {
+            throw new RendererRuntimeException("Caught unexpected Throwable", 1, $e);
+        }
     }
 
 
