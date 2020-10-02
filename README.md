@@ -4,6 +4,12 @@
 
 
 
+## Installation
+
+```bash
+$ composer require germania-kg/order-dispatcher
+```
+
 
 
 ## Classes and interfaces
