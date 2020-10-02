@@ -127,6 +127,10 @@ class OrderHandlerControllerTest extends \PHPUnit\Framework\TestCase
         $result_response = $sut($request, $response);
 
         $this->assertEquals($expected_status, $result_response->getStatusCode());
+
+        $result_body = $result_response->getBody()->__toString();
+        $result_decoded = json_decode($result_body, "ForceArray");
+        $this->assertArrayHasKey('errors', $result_decoded);
         $this->assertEquals($result_response->getHeaderLine("TestResult"), $factory_exception);
 
     }

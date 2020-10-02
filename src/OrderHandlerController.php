@@ -31,6 +31,9 @@ class OrderHandlerController
     public $response_header_name = "X-Order-Dispatch-Message";
 
 
+    public $debug = false;
+
+
 
     /**
      * @param OrderFactoryInterface   $order_factory    Order factory
@@ -105,16 +108,13 @@ class OrderHandlerController
             $this->order_handler->handle( $order);
         }
         catch (OrderFactoryExceptionInterface $e) {
-            $this->logger->warning($e->getMessage(), $this->throwableToArray($e));
-            return $this->addHeader($response, $e )->withStatus(400);
+            return $this->createErrorResponse($response, $e)->withStatus(400);
         }
         catch(OrderHandlerExceptionInterface $e) {
-            $this->logger->error($e->getMessage(), $this->throwableToArray($e));
-            return $this->addHeader($response, $e)->withStatus(500);
+            return $this->createErrorResponse($response, $e)->withStatus(500);
         }
         catch (\Throwable $e) {
-            $this->logger->alert($e->getMessage(), $this->throwableToArray($e));
-            return $this->addHeader($response, $e)->withStatus(500);
+            return $this->createErrorResponse($response, $e)->withStatus(500);
         }
 
 
@@ -129,13 +129,39 @@ class OrderHandlerController
     }
 
 
+    protected function createErrorResponse (ResponseInterface $response, \Throwable $e) : ResponseInterface
+    {
+        $this->logger->warning($e->getMessage(), $this->throwableToArray($e));
+        $response = $this->addHeader($response, $e);
+
+        $exceptions = array($this->throwableToArray($e));
+
+        while ($this->debug and $e = $e->getPrevious()) {
+            $exceptions[] = $this->throwableToArray($e);
+        }
+
+        $result = array(
+            'errors' => $exceptions
+        );
+
+        $response->getBody()->write( json_encode($result, \JSON_PRETTY_PRINT) );
+        return $response->withHeader('Content-type', 'application/json');
+
+    }
+
+
+
     protected function throwableToArray (\Throwable $e) : array
     {
-        return array(
+        $result = array(
             'type'     => get_class($e),
-            'message'  => $e->getMessage(),
-            'location' => sprintf("%s:%s", $e->getFile(), $e->getLine())
+            'message'  => $e->getMessage()
         );
+        if ($this->debug) {
+            $result['location'] = sprintf("%s:%s", $e->getFile(), $e->getLine());
+        }
+
+        return $result;
     }
 
 
