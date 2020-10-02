@@ -115,27 +115,35 @@ class SwiftMailerOrderHandler implements OrderHandlerInterface
 
 
 
-    protected function createMailSubject(OrderInterface $order, array $context = array()) : string
+    public function createMailSubject(OrderInterface $order, array $context = array()) : string
     {
-        $customer_data = $order->getCustomerData();
-        $company         = $customer_data['company']         ?? null ?: "Unbekannter Kunde";
-        $retailer_number = $customer_data['retailer_number'] ?? null ?: "(ohne Kundennummer)";
-
-        $werbepaket_name = $context['mailSubject'] ?? null ?: ($this->mail_config['subject'] ?? null ?: null);
-
-        if (empty($werbepaket_name)) {
-            return sprintf("Bestellung: %s/%s",
-                $company,
-                $retailer_number
-            );
+        $mail_subject = $context['mailSubject'] ?? null ?: ($this->mail_config['subject'] ?? null ?: null);
+        if (empty($mail_subject)) {
+            throw new \RuntimeException("No mail subject defined");
         }
 
-        return sprintf("Bestellung zu %s: %s/%s",
-            $werbepaket_name,
-            $company,
-            $retailer_number
-        );
+        // Stolen here:
+        // https://github.com/Seldaek/monolog/blob/master/src/Monolog/Processor/PsrLogMessageProcessor.php
+        $replacements = [];
+        foreach ($context as $key => $val) {
+            $placeholder = '{' . $key . '}';
+            if (strpos($mail_subject, $placeholder) === false) {
+                continue;
+            }
 
+            if (is_null($val) || is_scalar($val) || (is_object($val) && method_exists($val, "__toString"))) {
+                $replacements[$placeholder] = $val;
+            } elseif ($val instanceof \DateTimeInterface) {
+                $replacements[$placeholder] = $val->format("Y-m-d\TH:i:s.uP");
+            } elseif (is_object($val)) {
+                $replacements[$placeholder] = '[object '.get_class($val).']';
+            } elseif (is_array($val)) {
+                $replacements[$placeholder] = 'array'.@json_encode($val);
+            } else {
+                $replacements[$placeholder] = '['.gettype($val).']';
+            }
+        }
+        $mail_subject = strtr($mail_subject, $replacements);
         return $mail_subject;
     }
 

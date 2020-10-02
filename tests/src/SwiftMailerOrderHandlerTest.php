@@ -4,6 +4,7 @@ namespace tests;
 use Germania\OrderDispatcher\SwiftMailerOrderHandler;
 use Germania\OrderDispatcher\RendererInterface;
 use Germania\OrderDispatcher\OrderHandlerInterface;
+use Germania\OrderDispatcher\OrderInterface;
 use Swift_Mailer;
 use Swift_Message;
 
@@ -24,12 +25,45 @@ class SwiftMailerOrderHandlerTest extends \PHPUnit\Framework\TestCase
         $swiftmailer_mock = $this->prophesize(Swift_Mailer::class);
         $swiftmailer = $swiftmailer_mock->reveal();
 
-        $mail_config = array('to' => 'root', 'from' => 'me');
+        $mail_config = array(
+            'to' => 'root',
+            'from' => 'me'
+        );
 
         $sut = new SwiftMailerOrderHandler($swiftmailer, $mail_config, $renderer);
 
         $this->assertInstanceOf(OrderHandlerInterface::class, $sut);
+        return $sut;
     }
+
+
+    /**
+     * @depends testInstantiation
+     */
+    public function testMailSubject($sut)
+    {
+        $sut->setConfig([
+            'to' => 'root',
+            'from' => 'me',
+            'subject' => "{foo} {bar}"
+        ]);
+
+        $context = array(
+            'foo' => 'foo1',
+            'bar' => 'bar1',
+        );
+
+        $order_stub = $this->prophesize(OrderInterface::class);
+        $order = $order_stub->reveal();
+
+        $result = $sut->createMailSubject($order, $context);
+
+        $this->assertIsString($result);
+        $this->assertEquals($result, "foo1 bar1");
+
+
+    }
+
 
 
     /**
