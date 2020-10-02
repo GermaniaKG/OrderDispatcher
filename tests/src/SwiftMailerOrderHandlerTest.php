@@ -45,7 +45,7 @@ class SwiftMailerOrderHandlerTest extends \PHPUnit\Framework\TestCase
         $sut->setConfig([
             'to' => 'root',
             'from' => 'me',
-            'subject' => "{foo} {bar}"
+            'subject' => "{foo} {bar} {company}"
         ]);
 
         $context = array(
@@ -54,12 +54,13 @@ class SwiftMailerOrderHandlerTest extends \PHPUnit\Framework\TestCase
         );
 
         $order_stub = $this->prophesize(OrderInterface::class);
+        $order_stub->getCustomerData()->willReturn(array('company' => 'ACME'));
         $order = $order_stub->reveal();
 
         $result = $sut->createMailSubject($order, $context);
 
         $this->assertIsString($result);
-        $this->assertEquals($result, "foo1 bar1");
+        $this->assertEquals($result, "foo1 bar1 ACME");
 
 
     }
