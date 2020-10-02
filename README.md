@@ -279,6 +279,8 @@ Renderers are used to create a string representation from an order object, typic
 
 #### RendererInterface
 
+Renderers accept a *template* string and a context variables array. In case of errors, `Germania\OrderDispatcher\Exceptions\RendererExceptionInterface` must be thrown.
+
 ```php
 public function render( string $template, array $context = array()) : ?string;
 ```

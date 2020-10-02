@@ -88,8 +88,11 @@ class SwiftMailerOrderHandler implements OrderHandlerInterface
             $mail_result = $this->swift_mailer->send($message);
             return (bool) $mail_result;
         }
+        catch (OrderHandlerInterface $e) {
+            throw $e;
+        }
         catch( \Throwable $e) {
-            throw new OrderHandlerRuntimeException("Caught Throwable", 1, $e);
+            throw new OrderHandlerRuntimeException("Caught unexpected Throwable", 1, $e);
         }
     }
 
