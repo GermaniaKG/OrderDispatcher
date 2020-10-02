@@ -30,7 +30,7 @@ trait ValidatorTrait
     public function getValidator() : ValidatorInterface
     {
         if (!$this->validator) {
-            $this->validator = function( array $i) { return $i; };
+            $this->validator = new FilterValidator(array());
         }
         return $this->validator;
     }
