@@ -22,6 +22,7 @@ class OrderHandlerControllerTest extends \PHPUnit\Framework\TestCase
     use ProphecyTrait;
 
     public $logger;
+    public $response_header_name = "X-Order-Dispatch-Message";
 
 
     public function setUp() : void
@@ -122,8 +123,6 @@ class OrderHandlerControllerTest extends \PHPUnit\Framework\TestCase
         $order_handler = $order_handler_stub->reveal();
 
         $sut = new OrderHandlerController($order_factory, $order_handler, $this->logger);
-        $sut->setResponseHeaderName("TestResult");
-
         $result_response = $sut($request, $response);
 
         $this->assertEquals($expected_status, $result_response->getStatusCode());
@@ -131,7 +130,7 @@ class OrderHandlerControllerTest extends \PHPUnit\Framework\TestCase
         $result_body = $result_response->getBody()->__toString();
         $result_decoded = json_decode($result_body, "ForceArray");
         $this->assertArrayHasKey('errors', $result_decoded);
-        $this->assertEquals($result_response->getHeaderLine("TestResult"), $factory_exception);
+        $this->assertEquals($result_response->getHeaderLine($this->response_header_name), $factory_exception);
 
     }
 
@@ -184,12 +183,11 @@ class OrderHandlerControllerTest extends \PHPUnit\Framework\TestCase
 
 
         $sut = new OrderHandlerController($order_factory, $order_handler, $this->logger);
-        $sut->setResponseHeaderName("TestResult");
 
         $result_response = $sut($request, $response);
 
         $this->assertEquals($expected_status, $result_response->getStatusCode());
-        $this->assertEquals($result_response->getHeaderLine("TestResult"), $dispatcher_exception);
+        $this->assertEquals($result_response->getHeaderLine($this->response_header_name), $dispatcher_exception);
 
     }
 
