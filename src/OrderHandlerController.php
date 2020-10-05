@@ -6,6 +6,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Psr\Log\LoggerAwareTrait;
+use Nyholm\Psr7\Factory\Psr17Factory;
 
 use Germania\OrderDispatcher\Exceptions\OrderFactoryExceptionInterface;
 
@@ -25,10 +26,20 @@ class OrderHandlerController
     public $order_factory;
 
 
+    public $debug = false;
+
+
     /**
+     * Response "error type" header name
      * @var string
      */
     public $response_header_name = "X-Order-Dispatch-Message";
+
+
+    /**
+     * @var ResponderInterface
+     */
+    public $responder;
 
 
 
@@ -42,7 +53,10 @@ class OrderHandlerController
         $this->setOrderFactory($order_factory);
         $this->setOrderHandler($order_handler);
         $this->setLogger( $logger ?: new NullLogger );
+
+        $this->responder = new JsonResponder( new Psr17Factory, null, $this->debug );
     }
+
 
 
     /**
@@ -57,6 +71,7 @@ class OrderHandlerController
     }
 
 
+
     /**
      * Sets the Order handler.
      *
@@ -65,18 +80,6 @@ class OrderHandlerController
     public function setOrderHandler( OrderHandlerInterface $order_handler)
     {
         $this->order_handler = $order_handler;
-        return $this;
-    }
-
-
-    /**
-     * Sets the response header name.
-     *
-     * @param string $header_name [description]
-     */
-    public function setResponseHeaderName( string $header_name )
-    {
-        $this->response_header_name = $header_name;
         return $this;
     }
 
@@ -98,55 +101,52 @@ class OrderHandlerController
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response)
     {
 
-
         try {
             $input = $request->getParsedBody();
             $order = $this->order_factory->createOrder( $input );
             $this->order_handler->handle( $order);
         }
         catch (OrderFactoryExceptionInterface $e) {
-            $this->logger->warning($e->getMessage(), $this->throwableToArray($e));
-            return $this->addHeader($response, $e )->withStatus(400);
+            return $this->createErrorResponse($e, 400);
         }
         catch(OrderHandlerExceptionInterface $e) {
-            $this->logger->error($e->getMessage(), $this->throwableToArray($e));
-            return $this->addHeader($response, $e)->withStatus(500);
+            return $this->createErrorResponse($e, 500);
         }
         catch (\Throwable $e) {
-            $this->logger->alert($e->getMessage(), $this->throwableToArray($e));
-            return $this->addHeader($response, $e)->withStatus(500);
+            return $this->createErrorResponse($e, 500);
         }
 
+        return $this->responder->createResponse( $order );
+    }
 
-        $json_order = json_encode($order, \JSON_PRETTY_PRINT);
-        $response->getBody()->write($json_order);
 
-        $response = $response->withHeader('Content-type', 'application/json')
-                             ->withStatus(200);
+
+    protected function createErrorResponse (\Throwable $e, int $status) : ResponseInterface
+    {
+        $this->logger->warning($e->getMessage(), $this->throwableToArray($e));
+
+        $response = $this->responder->createErrorResponse( $e )
+                                    ->withStatus($status)
+                                    ->withHeader($this->response_header_name, get_class($e));
 
         return $response;
 
     }
+
 
 
     protected function throwableToArray (\Throwable $e) : array
     {
-        return array(
+        $result = array(
             'type'     => get_class($e),
-            'message'  => $e->getMessage(),
-            'location' => sprintf("%s:%s", $e->getFile(), $e->getLine())
+            'message'  => $e->getMessage()
         );
-    }
-
-
-
-    protected function addHeader( ResponseInterface $response, $message) : ResponseInterface
-    {
-        if ($message instanceOf \Throwable) {
-            $message = get_class($message);
+        if ($this->debug) {
+            $result['location'] = sprintf("%s:%s", $e->getFile(), $e->getLine());
         }
 
-        $response = $response->withHeader($this->response_header_name, $message);
-        return $response;
+        return $result;
     }
+
+
 }
