@@ -469,3 +469,20 @@ catch(ItemNotOrderedException $e) {
 }
 ```
 
+
+
+
+
+## Exceptions
+
+| Interface                      | sub interface          | Class                             | parent                   |
+| ------------------------------ | ---------------------- | --------------------------------- | ------------------------ |
+| OrderFactoryExceptionInterface |                        | ItemNotAvailableException         | UnexpectedValueException |
+| OrderFactoryExceptionInterface |                        | RequiredUserDataMissingException  | UnexpectedValueException |
+| OrderFactoryExceptionInterface |                        | NoArticlesOrderedException        | Exception                |
+| OrderHandlerExceptionInterface |                        | OrderHandlerRuntimeException      | RuntimeException         |
+| OrderHandlerExceptionInterface | ItemExceptionInterface | ItemInvalidUserDataException      | UnexpectedValueException |
+| OrderHandlerExceptionInterface | ItemExceptionInterface | ItemNotOrderedException           | Exception                |
+| RendererExceptionInterface     |                        | RendererRuntimeException          | RuntimeException         |
+| ValidatorExceptionInterface    |                        | ValidatorUnexpectedValueException | UnexpectedValueException |
+
