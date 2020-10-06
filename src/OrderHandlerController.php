@@ -58,6 +58,26 @@ class OrderHandlerController
     }
 
 
+    /**
+     * @param string $response_header_name Response header name
+     */
+    public function setResponseHeaderName( string $response_header_name)
+    {
+        $this->response_header_name = $response_header_name;
+        return $this;
+    }
+
+
+    /**
+     * Returns the response header name.
+     *
+     * @return string
+     */
+    public function getResponseHeaderName() : string
+    {
+        return $this->response_header_name;
+    }
+
 
     /**
      * Sets the Order factory.
