@@ -58,6 +58,26 @@ class OrderHandlerController
     }
 
 
+    /**
+     * @param string $response_header_name Response header name
+     */
+    public function setResponseHeaderName( string $response_header_name)
+    {
+        $this->response_header_name = $response_header_name;
+        return $this;
+    }
+
+
+    /**
+     * Returns the response header name.
+     *
+     * @return string
+     */
+    public function getResponseHeaderName() : string
+    {
+        return $this->response_header_name;
+    }
+
 
     /**
      * Sets the Order factory.
@@ -125,9 +145,12 @@ class OrderHandlerController
     {
         $this->logger->warning($e->getMessage(), $this->throwableToArray($e));
 
+        $response_header_name = $this->getResponseHeaderName();
+        $response_header_value = get_class($e);
+
         $response = $this->responder->createErrorResponse( $e )
                                     ->withStatus($status)
-                                    ->withHeader($this->response_header_name, get_class($e));
+                                    ->withHeader($response_header_name, $response_header_value);
 
         return $response;
 
