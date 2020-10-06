@@ -7,12 +7,16 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Psr\Log\LoggerAwareTrait;
 use Nyholm\Psr7\Factory\Psr17Factory;
+use Germania\Responder\ErrorResponder;
+use Germania\Responder\JsonResponder;
+use Germania\Responder\ResponderTrait;
 
 use Germania\OrderDispatcher\Exceptions\OrderFactoryExceptionInterface;
 
 class OrderHandlerController
 {
-    use LoggerAwareTrait;
+    use LoggerAwareTrait,
+        ResponderTrait;
 
     /**
      * @var OrderHandlerInterface
@@ -36,12 +40,6 @@ class OrderHandlerController
     public $response_header_name = "X-Order-Dispatch-Message";
 
 
-    /**
-     * @var ResponderInterface
-     */
-    public $responder;
-
-
 
     /**
      * @param OrderFactoryInterface   $order_factory    Order factory
@@ -54,7 +52,18 @@ class OrderHandlerController
         $this->setOrderHandler($order_handler);
         $this->setLogger( $logger ?: new NullLogger );
 
-        $this->responder = new JsonResponder( new Psr17Factory, null, $this->debug );
+        $this->setResponder(new JsonResponder( \JSON_PRETTY_PRINT ));
+    }
+
+
+
+    /**
+     * Sets the debug mode.
+     * @param bool $debug
+     */
+    public function setDebug(bool $debug) {
+        $this->debug = $debug;
+        return $this;
     }
 
 
@@ -136,7 +145,7 @@ class OrderHandlerController
             return $this->createErrorResponse($e, 500);
         }
 
-        return $this->responder->createResponse( $order );
+        return $this->getResponder()->createResponse( $order );
     }
 
 
@@ -148,9 +157,12 @@ class OrderHandlerController
         $response_header_name = $this->getResponseHeaderName();
         $response_header_value = get_class($e);
 
-        $response = $this->responder->createErrorResponse( $e )
-                                    ->withStatus($status)
-                                    ->withHeader($response_header_name, $response_header_value);
+        $default_responder = $this->getResponder();
+
+        $responder = new ErrorResponder($this->debug, $default_responder);
+        $response = $responder->createResponse( $e )
+                              ->withStatus($status)
+                              ->withHeader($response_header_name, $response_header_value);
 
         return $response;
 
