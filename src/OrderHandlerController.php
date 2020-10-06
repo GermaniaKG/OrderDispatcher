@@ -145,9 +145,12 @@ class OrderHandlerController
     {
         $this->logger->warning($e->getMessage(), $this->throwableToArray($e));
 
+        $response_header_name = $this->getResponseHeaderName();
+        $response_header_value = get_class($e);
+
         $response = $this->responder->createErrorResponse( $e )
                                     ->withStatus($status)
-                                    ->withHeader($this->response_header_name, get_class($e));
+                                    ->withHeader($response_header_name, $response_header_value);
 
         return $response;
 
