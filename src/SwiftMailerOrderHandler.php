@@ -4,12 +4,15 @@ namespace Germania\OrderDispatcher;
 use Swift_Mailer;
 use Swift_Message;
 use Germania\OrderDispatcher\Exceptions\OrderHandlerRuntimeException;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
-
-class SwiftMailerOrderHandler implements OrderHandlerInterface
+class SwiftMailerOrderHandler implements OrderHandlerInterface, LoggerAwareInterface
 {
 
-    use ContextTrait;
+    use ContextTrait, LoggerAwareTrait;
 
     /**
      * @var \Swift_Mailer
@@ -32,11 +35,12 @@ class SwiftMailerOrderHandler implements OrderHandlerInterface
      * @param array             $mail_config  Mail configuration with mandatory `to` and `from` elements and optional `subject` and `template`
      * @param RendererInterface $renderer
      */
-    public function __construct(Swift_Mailer $swift_mailer, array $mail_config, RendererInterface $renderer)
+    public function __construct(Swift_Mailer $swift_mailer, array $mail_config, RendererInterface $renderer, LoggerInterface $logger = null)
     {
         $this->setConfig($mail_config);
         $this->setSwiftMailer($swift_mailer);
         $this->setRenderer($renderer);
+        $this->setLogger($logger ?: new NullLogger);
 
     }
 
@@ -92,7 +96,13 @@ class SwiftMailerOrderHandler implements OrderHandlerInterface
             throw $e;
         }
         catch( \Throwable $e) {
-            throw new OrderHandlerRuntimeException("Caught unexpected Throwable", 1, $e);
+            $msg = sprintf("SwiftMailerOrderHandler: unexpected Throwable '%s'", get_class($e));
+            $this->logger->error($msg, [
+                'type' => get_class($e),
+                'message' => $e->getMessage(),
+                'location' => join(":", [$e->getFile(),$e->getLine()])
+            ]);
+            throw new OrderHandlerRuntimeException($msg, 1, $e);
         }
     }
 
