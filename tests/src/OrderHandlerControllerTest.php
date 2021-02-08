@@ -41,7 +41,7 @@ class OrderHandlerControllerTest extends \PHPUnit\Framework\TestCase
     }
 
 
-    public function mockServerRequest( array $parsed_body ) : ServerRequestInterface
+    public function mockServerRequest( $parsed_body ) : ServerRequestInterface
     {
         $request_mock = $this->prophesize(ServerRequestInterface::class);
         $request_mock->getParsedBody()->willReturn( $parsed_body );
@@ -154,6 +154,7 @@ class OrderHandlerControllerTest extends \PHPUnit\Framework\TestCase
         $response = (new Psr17Factory)->createResponse(200);
 
         return array(
+            [ $this->mockServerRequest( null ),                $response, RequiredUserDataMissingException::class, 400 ],
             [ $this->mockServerRequest( $no_email ),           $response, RequiredUserDataMissingException::class, 400 ],
             [ $this->mockServerRequest( $wrong_email ),        $response, RequiredUserDataMissingException::class, 400 ],
             [ $this->mockServerRequest( $no_company ),         $response, RequiredUserDataMissingException::class, 400 ],
