@@ -131,7 +131,7 @@ class OrderHandlerController
     {
 
         try {
-            $input = $request->getParsedBody();
+            $input = $request->getParsedBody() ?: array();
             $order = $this->order_factory->createOrder( $input );
             $this->order_handler->handle( $order);
         }
