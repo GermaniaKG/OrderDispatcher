@@ -12,7 +12,7 @@ class SkuQtyItemValidator implements ValidatorInterface
      * @var array
      */
     public $field_validation = array(
-        "sku"    =>  FILTER_SANITIZE_STRING,
+        "sku"    =>  FILTER_SANITIZE_FULL_SPECIAL_CHARS,
         "quantity" =>  array ( "filter"=>FILTER_VALIDATE_INT, "options"=>["min_range"=>0])
     );
 

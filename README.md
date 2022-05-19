@@ -76,7 +76,7 @@ $factory = new ArrayOrderFactory($item_factory, "items", $logger);
 
 $customer_validation = new FilterValidator(array(
   "email"  =>  FILTER_VALIDATE_EMAIL,
-  "company" =>  FILTER_SANITIZE_STRING,
+  "company" =>  FILTER_SANITIZE_FULL_SPECIAL_CHARS,
   "retailer_number" =>  [
     	"filter" => FILTER_VALIDATE_REGEXP, 
     	"options" => ['regexp'=>"/^[\d\-]+$/"]
@@ -419,7 +419,7 @@ use Germania\OrderDispatcher\FilterValidator;
 
 $fv = new FilterValidator([
   "email"  =>  FILTER_VALIDATE_EMAIL,
-  "company" =>  FILTER_SANITIZE_STRING  
+  "company" =>  FILTER_SANITIZE_FULL_SPECIAL_CHARS  
 ]);
 
 $result = $fv->validate([

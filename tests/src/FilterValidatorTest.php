@@ -23,8 +23,8 @@ class FilterValidatorTest extends \PHPUnit\Framework\TestCase
     {
         $sut->setValidation([
           "email"  =>  FILTER_VALIDATE_EMAIL,
-          "company" =>  FILTER_SANITIZE_STRING,
-          "shouldBeAdded" =>  FILTER_SANITIZE_STRING
+          "company" =>  FILTER_SANITIZE_FULL_SPECIAL_CHARS,
+          "shouldBeAdded" =>  FILTER_SANITIZE_FULL_SPECIAL_CHARS
         ]);
         $this->assertInstanceOf(ValidatorInterface::class, $sut );
 
