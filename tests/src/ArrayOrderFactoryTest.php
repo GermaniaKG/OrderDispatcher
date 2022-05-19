@@ -36,7 +36,7 @@ class ArrayOrderFactoryTest extends \PHPUnit\Framework\TestCase
 
     public $default_field_validation = array(
         "email"  =>  FILTER_VALIDATE_EMAIL,
-        "company"         =>  FILTER_SANITIZE_STRING,
+        "company"         =>  FILTER_SANITIZE_FULL_SPECIAL_CHARS,
         "retailer_number" =>  array("filter" => FILTER_VALIDATE_REGEXP, "options" => [
             'regexp'=>"/^[\d\-]+$/"
         ]),
