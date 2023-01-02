@@ -38,6 +38,8 @@ class ValidatorItemFactoryDecoratorTest extends  \PHPUnit\Framework\TestCase
     public function testFactoryMethod( $sut )
     {
         $item_mock = $this->prophesize(ItemInterface::class);
+        $item_mock->offsetExists(Argument::type('string'))->willReturn( false );
+        $item_mock->offsetSet(Argument::type('string'), Argument::type('string'))->shouldBeCalled();
         $item = $item_mock->reveal();
 
         $item_factory_mock = $this->prophesize( ItemFactoryInterface::class );
