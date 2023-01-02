@@ -10,7 +10,7 @@ class FilterValidator implements ValidatorInterface
     /**
      * @var array
      */
-    public $field_validation = array();
+    public $validation = array();
 
 
     /**
